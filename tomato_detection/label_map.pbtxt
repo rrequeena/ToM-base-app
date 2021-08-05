@@ -1,0 +1,12 @@
+item { 
+	name:'Verde'
+	id:1
+}
+item { 
+	name:'Rojo'
+	id:2
+}
+item { 
+	name:'Flor'
+	id:3
+}
