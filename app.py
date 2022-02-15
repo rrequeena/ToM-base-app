@@ -1,3 +1,4 @@
+from configparser import Interpolation
 import tensorflow as tf
 import object_detection
 from object_detection.utils import label_map_util
@@ -16,6 +17,8 @@ st.image("https://github.com/rrequeena/ToM/blob/main/ToM-logo2.jpg?raw=true")
 """
 ### WebApp base del proyecto ToM (Fase de Pruebas).
 Suba una imagen que contenga tomates para probar la detección de los mismos
+
+#### Link al repositorio oficial: https://github.com/rrequeena/ToM
 """
 
 # Load pipeline config and build a detection model
@@ -36,6 +39,11 @@ def detect_fn(image):
     return detections
 
 uploaded_image = st.file_uploader("Subir una imagen...")
+st.markdown("""
+<sup><b>Consideraciones:</b> Subir imagenes en formato cuadrado para una mejor visualización.
+<br>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; La aplicación es sólo de prueba por lo que 
+puede presentar erorres en algunas detecciones.</sup>
+""", unsafe_allow_html=True)
 
 if uploaded_image is not None:
 
@@ -45,8 +53,23 @@ if uploaded_image is not None:
 	print("\n\n==============\n\n")
 	print(opencv_image.shape)
 	print("\n\n==============\n\n")
-	image_np = np.array(img)
-
+	if img.shape[0] > 512 and img.shape[0] <= 1800:
+		width = int(img.shape[1] * 0.6)
+		heigth = int(img.shape[0]*0.6)
+		dim = (width, heigth)
+		resized_img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+		image_np = np.array(resized_img)
+	elif img.shape[0] > 1800:
+		width = int(img.shape[1] * 0.3)
+		heigth = int(img.shape[0]*0.3)
+		dim = (width, heigth)
+		resized_img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+		image_np = np.array(resized_img)
+	else:
+		image_np = np.array(img)
+	print("\n\n==============\n\n")
+	print(image_np.shape)
+	print("\n\n==============\n\n")
 	input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
 	detections = detect_fn(input_tensor)
 
