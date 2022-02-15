@@ -15,10 +15,8 @@
 """Helper functions for SSD models meta architecture tests."""
 
 import functools
-import tensorflow.compat.v1 as tf
-from google.protobuf import text_format
+import tensorflow as tf
 
-from object_detection.builders import post_processing_builder
 from object_detection.core import anchor_generator
 from object_detection.core import balanced_positive_negative_sampler as sampler
 from object_detection.core import box_list
@@ -27,21 +25,12 @@ from object_detection.core import post_processing
 from object_detection.core import region_similarity_calculator as sim_calc
 from object_detection.core import target_assigner
 from object_detection.meta_architectures import ssd_meta_arch
-from object_detection.protos import calibration_pb2
 from object_detection.protos import model_pb2
 from object_detection.utils import ops
 from object_detection.utils import test_case
 from object_detection.utils import test_utils
-from object_detection.utils import tf_version
 
-# pylint: disable=g-import-not-at-top
-try:
-  import tf_slim as slim
-except ImportError:
-  # TF 2.0 doesn't ship with contrib.
-  pass
-# pylint: enable=g-import-not-at-top
-
+slim = tf.contrib.slim
 keras = tf.keras.layers
 
 
@@ -133,15 +122,13 @@ class SSDMetaArchTestBase(test_case.TestCase):
       expected_loss_weights=model_pb2.DetectionModel().ssd.loss.NONE,
       min_num_negative_samples=1,
       desired_negative_sampling_ratio=3,
+      use_keras=False,
       predict_mask=False,
       use_static_shapes=False,
-      nms_max_size_per_class=5,
-      calibration_mapping_value=None,
-      return_raw_detections_during_predict=False):
+      nms_max_size_per_class=5):
     is_training = False
     num_classes = 1
     mock_anchor_generator = MockAnchorGenerator2x2()
-    use_keras = tf_version.is_tf2()
     if use_keras:
       mock_box_predictor = test_utils.MockKerasBoxPredictor(
           is_training, num_classes, add_background_class=add_background_class)
@@ -169,24 +156,6 @@ class SSDMetaArchTestBase(test_case.TestCase):
         max_size_per_class=nms_max_size_per_class,
         max_total_size=nms_max_size_per_class,
         use_static_shapes=use_static_shapes)
-    score_conversion_fn = tf.identity
-    calibration_config = calibration_pb2.CalibrationConfig()
-    if calibration_mapping_value:
-      calibration_text_proto = """
-      function_approximation {
-        x_y_pairs {
-            x_y_pair {
-              x: 0.0
-              y: %f
-            }
-            x_y_pair {
-              x: 1.0
-              y: %f
-            }}}""" % (calibration_mapping_value, calibration_mapping_value)
-      text_format.Merge(calibration_text_proto, calibration_config)
-      score_conversion_fn = (
-          post_processing_builder._build_calibrated_score_converter(  # pylint: disable=protected-access
-              tf.identity, calibration_config))
     classification_loss_weight = 1.0
     localization_loss_weight = 1.0
     negative_class_weight = 1.0
@@ -232,7 +201,7 @@ class SSDMetaArchTestBase(test_case.TestCase):
         encode_background_as_zeros=encode_background_as_zeros,
         image_resizer_fn=image_resizer_fn,
         non_max_suppression_fn=non_max_suppression_fn,
-        score_conversion_fn=score_conversion_fn,
+        score_conversion_fn=tf.identity,
         classification_loss=classification_loss,
         localization_loss=localization_loss,
         classification_loss_weight=classification_loss_weight,
@@ -247,8 +216,6 @@ class SSDMetaArchTestBase(test_case.TestCase):
         add_background_class=add_background_class,
         random_example_sampler=random_example_sampler,
         expected_loss_weights_fn=expected_loss_weights_fn,
-        return_raw_detections_during_predict=(
-            return_raw_detections_during_predict),
         **kwargs)
     return model, num_classes, mock_anchor_generator.num_anchors(), code_size
 
@@ -257,3 +224,7 @@ class SSDMetaArchTestBase(test_case.TestCase):
       if key.endswith(suffix):
         return dictionary[key]
     raise ValueError('key not found {}'.format(suffix))
+
+
+if __name__ == '__main__':
+  tf.test.main()

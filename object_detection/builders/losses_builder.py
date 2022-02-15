@@ -263,8 +263,7 @@ def _build_classification_loss(loss_config):
   elif loss_type == 'weighted_dice_classification_loss':
     config = loss_config.weighted_dice_classification_loss
     return losses.WeightedDiceClassificationLoss(
-        squared_normalization=config.squared_normalization,
-        is_prediction_probability=config.is_prediction_probability)
+        squared_normalization=config.squared_normalization)
 
   else:
     raise ValueError('Empty loss config.')

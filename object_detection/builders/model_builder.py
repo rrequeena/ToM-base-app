@@ -93,7 +93,6 @@ if tf_version.is_tf1():
   from object_detection.models.ssd_mobiledet_feature_extractor import SSDMobileDetDSPFeatureExtractor
   from object_detection.models.ssd_mobiledet_feature_extractor import SSDMobileDetEdgeTPUFeatureExtractor
   from object_detection.models.ssd_mobiledet_feature_extractor import SSDMobileDetGPUFeatureExtractor
-  from object_detection.models.ssd_spaghettinet_feature_extractor import SSDSpaghettinetFeatureExtractor
   from object_detection.models.ssd_pnasnet_feature_extractor import SSDPNASNetFeatureExtractor
   from object_detection.predictors import rfcn_box_predictor
 # pylint: enable=g-import-not-at-top
@@ -230,8 +229,6 @@ if tf_version.is_tf1():
           SSDMobileDetEdgeTPUFeatureExtractor,
       'ssd_mobiledet_gpu':
           SSDMobileDetGPUFeatureExtractor,
-      'ssd_spaghettinet':
-          SSDSpaghettinetFeatureExtractor,
   }
 
   FASTER_RCNN_FEATURE_EXTRACTOR_CLASS_MAP = {
@@ -352,12 +349,6 @@ def _build_ssd_feature_extractor(feature_extractor_config,
         'reuse_weights': reuse_weights,
     })
 
-
-  if feature_extractor_config.HasField('spaghettinet_arch_name'):
-    kwargs.update({
-        'spaghettinet_arch_name':
-            feature_extractor_config.spaghettinet_arch_name,
-    })
 
   if feature_extractor_config.HasField('fpn'):
     kwargs.update({
@@ -925,9 +916,7 @@ def keypoint_proto_to_params(kp_config, keypoint_map_dict):
       regress_head_kernel_sizes=regress_head_kernel_sizes,
       score_distance_multiplier=kp_config.score_distance_multiplier,
       std_dev_multiplier=kp_config.std_dev_multiplier,
-      rescoring_threshold=kp_config.rescoring_threshold,
-      gaussian_denom_ratio=kp_config.gaussian_denom_ratio,
-      argmax_postprocessing=kp_config.argmax_postprocessing)
+      rescoring_threshold=kp_config.rescoring_threshold)
 
 
 def object_detection_proto_to_params(od_config):
@@ -992,8 +981,7 @@ def object_center_proto_to_params(oc_config):
       use_labeled_classes=oc_config.use_labeled_classes,
       keypoint_weights_for_center=keypoint_weights_for_center,
       center_head_num_filters=center_head_num_filters,
-      center_head_kernel_sizes=center_head_kernel_sizes,
-      peak_max_pool_kernel_size=oc_config.peak_max_pool_kernel_size)
+      center_head_kernel_sizes=center_head_kernel_sizes)
 
 
 def mask_proto_to_params(mask_config):
@@ -1191,24 +1179,13 @@ def _build_center_net_feature_extractor(feature_extractor_config, is_training):
           list(feature_extractor_config.channel_stds),
       'bgr_ordering':
           feature_extractor_config.bgr_ordering,
+      'depth_multiplier':
+          feature_extractor_config.depth_multiplier,
+      'use_separable_conv':
+          use_separable_conv,
+      'upsampling_interpolation':
+          feature_extractor_config.upsampling_interpolation,
   }
-  if feature_extractor_config.HasField('depth_multiplier'):
-    kwargs.update({
-        'depth_multiplier': feature_extractor_config.depth_multiplier,
-    })
-  if feature_extractor_config.HasField('use_separable_conv'):
-    kwargs.update({
-        'use_separable_conv': use_separable_conv,
-    })
-  if feature_extractor_config.HasField('upsampling_interpolation'):
-    kwargs.update({
-        'upsampling_interpolation':
-            feature_extractor_config.upsampling_interpolation,
-    })
-  if feature_extractor_config.HasField('use_depthwise'):
-    kwargs.update({
-        'use_depthwise': feature_extractor_config.use_depthwise,
-    })
 
 
   return CENTER_NET_EXTRACTOR_FUNCTION_MAP[feature_extractor_config.type](
