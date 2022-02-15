@@ -52,7 +52,6 @@ nest-asyncio
 notebook
 numpy
 oauthlib==3.1.1
-object-detection==0.1
 olefile
 opt-einsum==3.3.0
 packaging
