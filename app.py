@@ -14,12 +14,12 @@ import os
 # Proyecto ToM: Tomatoes Monitor
 """
 st.image("https://github.com/rrequeena/ToM/blob/main/ToM-logo2.jpg?raw=true")
-"""
+st.markdown("""
 ### WebApp base del proyecto ToM (Fase de Pruebas).
-Suba una imagen que contenga tomates para probar la detección de los mismos
+<b>👉 Suba una imagen que contenga tomates para probar la detección de los mismos. 👈</b>
 
 #### Link al repositorio oficial: https://github.com/rrequeena/ToM
-"""
+""", unsafe_allow_html=True)
 
 # Load pipeline config and build a detection model
 configs = config_util.get_configs_from_pipeline_file('tomato_detection/pipeline.config')
