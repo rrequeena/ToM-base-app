@@ -3,7 +3,7 @@ numpy
 streamlit
 Pillow
 tensorflow==2.7
-opencv-python
+opencv-python-headless
 keras-nightly==2.5.0.dev2021032900
 Keras-Preprocessing==1.1.2
 Markdown==3.3.4
